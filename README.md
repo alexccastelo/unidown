@@ -1,36 +1,123 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# X-Down
 
-## Getting Started
+Web app minimalista para baixar vídeos do X (Twitter) direto pelo menu **Compartilhar** do macOS. Integra via Atalhos (Shortcuts.app); o app em si é um Next.js que expõe duas rotas: preview do vídeo e stream de download.
 
-First, run the development server:
+> **Escopo v1**: X/Twitter, uso local (localhost), sem contas. YouTube e outras redes ficam para depois — é um ajuste de allow-list quando for a hora.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Como funciona
+
+```
+Safari (tweet) → Compartilhar → Atalho "X-Down"
+        → abre http://localhost:3000/?url=<tweet>
+        → preview (thumb, autor, qualidades)
+        → clique "Baixar" → stream direto para ~/Downloads
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Backend chama `yt-dlp` localmente, usando os cookies do Safari (`--cookies-from-browser safari`) para autenticar no X, que em 2026 exige login para ver vídeos.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Requisitos
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- macOS
+- Node.js 20+
+- pnpm 10+
+- [`yt-dlp`](https://github.com/yt-dlp/yt-dlp): `brew install yt-dlp`
+- Estar logado em `https://x.com` no Safari
 
-## Learn More
+## Setup
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm install
+pnpm dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Abra [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Instalar o Atalho
 
-## Deploy on Vercel
+Veja [`public/shortcut/README.md`](./public/shortcut/README.md) — passo-a-passo de ~90 segundos para criar o Atalho no Shortcuts.app e ativá-lo no menu Compartilhar.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Variáveis de ambiente (opcionais)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `YTDLP_BIN` — caminho para `yt-dlp` (padrão: `yt-dlp` no `$PATH`).
+- `YTDLP_COOKIE_BROWSER` — de qual navegador pegar os cookies. Padrão `safari`. Aceita `chrome`, `firefox`, `edge`, `brave`, `chromium`, `vivaldi`, ou `none` para desabilitar cookies.
+
+Exemplo:
+
+```bash
+YTDLP_COOKIE_BROWSER=chrome pnpm dev
+```
+
+## Endpoints
+
+- `GET /api/info?url=<tweet-url>` — metadados JSON (`title`, `uploader`, `thumbnail`, `formats`, etc).
+- `GET /api/download?url=<tweet-url>&format=<id>` — stream do vídeo com `Content-Disposition: attachment`.
+
+Ambos só aceitam hosts `x.com`, `twitter.com` e `mobile.twitter.com`. Rate limit: 10 req/min por IP.
+
+## Estrutura
+
+```
+app/
+  api/info/route.ts        # metadados via yt-dlp -J
+  api/download/route.ts    # stream via yt-dlp -o -
+  page.tsx                 # UI: preview + download
+components/                # url-input, video-preview, empty-state, theme-toggle...
+lib/
+  ytdlp.ts                 # wrapper (spawn, JSON, stream) — server only
+  ytdlp-types.ts           # tipos compartilhados client/server
+  url-utils.ts             # validação + sanitização de filename
+  errors.ts                # mensagens amigáveis em pt-BR
+  rate-limit.ts            # token bucket em memória
+public/shortcut/           # instruções do Atalho
+```
+
+## Solução de problemas
+
+### "Sem acesso aos cookies do Safari"
+
+macOS protege os cookies do Safari num container. Para o Node ler, você precisa dar **Acesso Total ao Disco** ao Terminal (ou ao app de terminal que você usa — iTerm, Warp, etc.):
+
+`Ajustes do Sistema → Privacidade e Segurança → Acesso Total ao Disco → +` → selecione seu Terminal.
+
+Depois feche e reabra o Terminal e rode `pnpm dev` de novo.
+
+**Ou** use Chrome/Firefox (cookies acessíveis sem permissão especial):
+
+```bash
+YTDLP_COOKIE_BROWSER=chrome pnpm dev
+```
+
+(logue-se em x.com no Chrome antes).
+
+### "yt-dlp não encontrado"
+
+```bash
+brew install yt-dlp
+```
+
+### Tweet não baixa mas tem vídeo
+
+`yt-dlp` muda bastante. Atualize:
+
+```bash
+brew upgrade yt-dlp
+```
+
+## Manutenção
+
+`yt-dlp` muda bastante (o X quebra o scraping de tempos em tempos). Se algo parar de funcionar:
+
+```bash
+brew upgrade yt-dlp
+```
+
+## Roadmap
+
+- v1.x — YouTube, Instagram, TikTok (destravar em `lib/url-utils.ts`).
+- v2 — deploy público (exige host com processo de longa duração: Fly.io, VPS, etc.).
+- v3 — histórico com login opcional.
+- v4 — app nativo macOS com Share Extension própria (substitui o Atalho).
+
+## Licença
+
+Pessoal / estudo. Respeite o autor dos vídeos e os termos do X.
