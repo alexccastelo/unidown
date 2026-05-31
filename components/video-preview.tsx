@@ -30,7 +30,10 @@ function formatSize(bytes: number | null): string {
 function formatLabel(f: VideoFormat): string {
   const res = f.resolution ?? f.formatId;
   const size = formatSize(f.filesize);
-  return size ? `${res} · ${f.ext.toUpperCase()} · ${size}` : `${res} · ${f.ext.toUpperCase()}`;
+  const audio = f.hasAudio ? "" : " + áudio";
+  return size
+    ? `${res}${audio} · MP4 · ${size}`
+    : `${res}${audio} · MP4`;
 }
 
 export function VideoPreview({
@@ -44,11 +47,12 @@ export function VideoPreview({
     () => info.formats.filter((f) => f.formatId && f.formatId.length > 0),
     [info],
   );
-  const [formatId, setFormatId] = useState<string>(
-    info.bestFormatId ?? formats[0]?.formatId ?? "",
-  );
+  // Start with the highest-quality format in the picker (not the compound bestFormatId).
+  // Empty string → server falls back to best compound selector automatically.
+  const [formatId, setFormatId] = useState<string>(formats[0]?.formatId ?? "");
+  const [ext, setExt] = useState<"mp4" | "mov">("mp4");
 
-  const downloadHref = `/api/download?url=${encodeURIComponent(sourceUrl)}&format=${encodeURIComponent(formatId)}`;
+  const downloadHref = `/api/download?url=${encodeURIComponent(sourceUrl)}${formatId ? `&format=${encodeURIComponent(formatId)}` : ""}&ext=${ext}`;
 
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -76,7 +80,7 @@ export function VideoPreview({
           )}
         </div>
 
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           {formats.length > 1 ? (
             <Select
               value={formatId}
@@ -84,7 +88,7 @@ export function VideoPreview({
                 if (v) setFormatId(v);
               }}
             >
-              <SelectTrigger className="h-11 w-full sm:w-auto sm:min-w-[240px]">
+              <SelectTrigger className="h-11 w-full sm:w-auto sm:min-w-[220px]">
                 <SelectValue placeholder="Qualidade" />
               </SelectTrigger>
               <SelectContent>
@@ -96,6 +100,34 @@ export function VideoPreview({
               </SelectContent>
             </Select>
           ) : null}
+
+          {/* Formato de arquivo (MP4 / MOV) */}
+          <div className="flex items-center gap-1 rounded-lg border border-border p-1 bg-muted/40 h-11 w-full sm:w-auto justify-center">
+            <button
+              type="button"
+              onClick={() => setExt("mp4")}
+              className={cn(
+                "flex-1 sm:flex-initial px-4 py-1 text-xs font-medium rounded-md transition-all h-8",
+                ext === "mp4"
+                  ? "bg-background text-foreground shadow-sm border border-border/20 font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              MP4
+            </button>
+            <button
+              type="button"
+              onClick={() => setExt("mov")}
+              className={cn(
+                "flex-1 sm:flex-initial px-4 py-1 text-xs font-medium rounded-md transition-all h-8",
+                ext === "mov"
+                  ? "bg-background text-foreground shadow-sm border border-border/20 font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+            >
+              MOV
+            </button>
+          </div>
 
           <a
             href={downloadHref}

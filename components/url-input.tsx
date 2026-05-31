@@ -30,10 +30,10 @@ export function UrlInput({
         type="url"
         inputMode="url"
         autoComplete="url"
-        placeholder="Cole o link do tweet (x.com/... ou twitter.com/...)"
+        placeholder="Cole o link do vídeo (YouTube, TikTok, X, Instagram...)"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        aria-label="URL do tweet"
+        aria-label="URL do vídeo"
         className="h-11 text-base sm:text-sm"
       />
       <Button

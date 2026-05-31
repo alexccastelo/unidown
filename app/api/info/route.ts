@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { validateXUrl } from "@/lib/url-utils";
+import { validateUrl } from "@/lib/url-utils";
 import { getInfo, YtDlpError } from "@/lib/ytdlp";
 import { allow, clientKey } from "@/lib/rate-limit";
 
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const urlParam = req.nextUrl.searchParams.get("url") ?? "";
-  const valid = validateXUrl(urlParam);
+  const valid = validateUrl(urlParam);
   if (!valid.ok) {
     return Response.json({ error: valid.reason }, { status: 400 });
   }

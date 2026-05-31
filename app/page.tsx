@@ -62,8 +62,10 @@ function HomeInner() {
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-6 sm:gap-8 sm:px-6 sm:py-10">
       <header className="flex items-center justify-between">
         <div className="flex items-baseline gap-2">
-          <h1 className="text-lg font-semibold tracking-tight sm:text-xl">X-Down</h1>
-          <span className="text-xs text-muted-foreground">vídeos do X</span>
+          <h1 className="text-xl font-extrabold tracking-tight sm:text-2xl bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:via-indigo-300 dark:to-purple-400">
+            UniDown
+          </h1>
+          <span className="text-xs text-muted-foreground font-medium">Download Universal</span>
         </div>
         <ThemeToggle />
       </header>
@@ -100,7 +102,7 @@ function HomeInner() {
       </section>
 
       <footer className="mt-auto pt-8 text-xs text-muted-foreground">
-        Para uso pessoal. Respeite o autor do conteúdo e os termos do X.
+        Para uso pessoal. Respeite o autor do conteúdo e os termos de cada plataforma.
       </footer>
     </main>
   );

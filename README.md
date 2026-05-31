@@ -1,15 +1,15 @@
-# X-Down
+# UniDown
 
-Web app minimalista para baixar vídeos do X (Twitter) direto pelo menu **Compartilhar** do macOS. Integra via Atalhos (Shortcuts.app); o app em si é um Next.js que expõe duas rotas: preview do vídeo e stream de download.
+Web app minimalista para baixar vídeos de qualquer rede social (YouTube, TikTok, X/Twitter, Instagram, etc.) direto pelo menu **Compartilhar** do macOS. Integra via Atalhos (Shortcuts.app); o app em si é um Next.js que expõe duas rotas: preview do vídeo e stream de download.
 
-> **Escopo v1**: X/Twitter, uso local (localhost), sem contas. YouTube e outras redes ficam para depois — é um ajuste de allow-list quando for a hora.
+> **Escopo v1**: Download Universal de vídeos, uso local (localhost), sem contas.
 
 ## Como funciona
 
 ```
-Safari (tweet) → Compartilhar → Atalho "X-Down"
-        → abre http://localhost:3000/?url=<tweet>
-        → preview (thumb, autor, qualidades)
+Safari (vídeo) → Compartilhar → Atalho "UniDown"
+        → abre http://localhost:3000/?url=<link>
+        → preview (thumb, autor, qualidades, formato MP4/MOV)
         → clique "Baixar" → stream direto para ~/Downloads
 ```
 
@@ -113,11 +113,11 @@ brew upgrade yt-dlp
 
 ## Roadmap
 
-- v1.x — YouTube, Instagram, TikTok (destravar em `lib/url-utils.ts`).
+- v1.0 — Lançamento com suporte universal (X/Twitter, YouTube, TikTok, Instagram, etc.) e escolha de formato MP4/MOV.
 - v2 — deploy público (exige host com processo de longa duração: Fly.io, VPS, etc.).
 - v3 — histórico com login opcional.
 - v4 — app nativo macOS com Share Extension própria (substitui o Atalho).
 
 ## Licença
 
-Pessoal / estudo. Respeite o autor dos vídeos e os termos do X.
+Pessoal / estudo. Respeite o autor dos vídeos e os termos de uso de cada plataforma.

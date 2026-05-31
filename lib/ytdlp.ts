@@ -17,17 +17,29 @@ export class YtDlpError extends Error {
   }
 }
 
-function baseArgs(): string[] {
+function baseArgs(url: string): string[] {
   const args = ["--no-warnings", "--no-progress"];
   if (COOKIE_BROWSER && COOKIE_BROWSER !== "none") {
-    args.push("--cookies-from-browser", COOKIE_BROWSER);
+    try {
+      const parsed = new URL(url);
+      const host = parsed.hostname.toLowerCase();
+      const isX = host.endsWith("x.com") || host.endsWith("twitter.com");
+
+      // Se o navegador de cookies for o Safari, só o usamos para links do X/Twitter.
+      // Isso evita erros de permissão de disco (Operation Not Permitted) ao baixar de outras redes públicas (ex: YouTube, TikTok).
+      if (isX || COOKIE_BROWSER !== "safari") {
+        args.push("--cookies-from-browser", COOKIE_BROWSER);
+      }
+    } catch {
+      args.push("--cookies-from-browser", COOKIE_BROWSER);
+    }
   }
   return args;
 }
 
 export async function getInfo(url: string): Promise<VideoInfo> {
   return new Promise((resolve, reject) => {
-    const args = [...baseArgs(), "-J", url];
+    const args = [...baseArgs(url), "-J", url];
     const child = spawn(YTDLP_BIN, args, { stdio: ["ignore", "pipe", "pipe"] });
 
     const stdoutChunks: Buffer[] = [];
@@ -90,21 +102,43 @@ type RawInfo = {
   formats?: RawFormat[];
 };
 
+// Compound selector: yt-dlp picks best video + best audio and muxes to MP4.
+// Used when the user doesn't pick a specific quality.
+const BEST_FORMAT = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best";
+
+// Build the yt-dlp --format string for a given format ID.
+// Simple IDs (e.g. "137") are DASH video-only → append best-audio fallback chain.
+// Compound/selector strings (e.g. already containing "+" or "/") are used as-is.
+function buildFormatString(formatId: string): string {
+  if (formatId.includes("/") || formatId.startsWith("best")) return formatId;
+  return `${formatId}+bestaudio[ext=m4a]/${formatId}+bestaudio/${formatId}`;
+}
+
 function normalize(raw: RawInfo): VideoInfo {
   const formats: VideoFormat[] = Array.isArray(raw.formats)
     ? raw.formats
-        .filter((f) => f.vcodec && f.vcodec !== "none")
+        .filter((f) => {
+          const hasVideo = f.vcodec && f.vcodec !== "none";
+          // HLS streams download as .ts containers that QuickTime can't open.
+          // We always use the compound BEST_FORMAT for HLS scenarios anyway.
+          const fid = String(f.format_id ?? "").toLowerCase();
+          const isHls = fid.startsWith("hls");
+          // Keep only formats with explicit resolution so the picker is useful.
+          const hasResolution = Boolean(f.width && f.height);
+          return hasVideo && !isHls && hasResolution;
+        })
         .map((f) => ({
           formatId: String(f.format_id ?? ""),
-          ext: String(f.ext ?? "mp4"),
-          resolution:
-            f.resolution ??
-            (f.width && f.height ? `${f.width}x${f.height}` : null),
+          ext: "mp4", // we always merge output to mp4
+          resolution: `${f.width}x${f.height}`,
           filesize: f.filesize ?? f.filesize_approx ?? null,
           vcodec: f.vcodec ?? null,
           acodec: f.acodec ?? null,
           tbr: f.tbr ?? null,
+          hasAudio: Boolean(f.acodec && f.acodec !== "none"),
         }))
+        // Deduplicate by resolution (yt-dlp can return duplicates at same res)
+        .filter((f, i, arr) => arr.findIndex((x) => x.resolution === f.resolution) === i)
         .sort((a, b) => (b.tbr ?? 0) - (a.tbr ?? 0))
     : [];
 
@@ -118,8 +152,8 @@ function normalize(raw: RawInfo): VideoInfo {
     description: raw.description ?? null,
     webpageUrl: String(raw.webpage_url ?? ""),
     formats,
-    bestFormatId: raw.format_id ? String(raw.format_id) : (formats[0]?.formatId ?? null),
-    ext: String(raw.ext ?? "mp4"),
+    bestFormatId: BEST_FORMAT,
+    ext: "mp4",
   };
 }
 
@@ -128,12 +162,17 @@ export type DownloadStream = {
   contentType: string;
 };
 
-export function streamDownload(url: string, formatId: string): DownloadStream {
+export function streamDownload(
+  url: string,
+  formatId: string,
+  ext: "mp4" | "mov" = "mp4"
+): DownloadStream {
   const args = [
-    ...baseArgs(),
+    ...baseArgs(url),
     "-o", "-",
     "--no-part",
-    "--format", formatId,
+    "--format", buildFormatString(formatId),
+    "--merge-output-format", ext,
     url,
   ];
   const child = spawn(YTDLP_BIN, args, { stdio: ["ignore", "pipe", "pipe"] });
@@ -171,5 +210,5 @@ export function streamDownload(url: string, formatId: string): DownloadStream {
     },
   });
 
-  return { stream: wrapped, contentType: "video/mp4" };
+  return { stream: wrapped, contentType: ext === "mov" ? "video/quicktime" : "video/mp4" };
 }

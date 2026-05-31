@@ -5,12 +5,12 @@ export function EmptyState() {
       <ol className="mt-3 space-y-2 text-sm text-muted-foreground leading-relaxed">
         <li>
           <span className="font-medium text-foreground">1.</span> Instale o
-          Atalho <code className="rounded bg-muted px-1.5 py-0.5 text-xs">X-Down</code>{" "}
+          Atalho <code className="rounded bg-muted px-1.5 py-0.5 text-xs">UniDown</code>{" "}
           (veja instruções em <code className="rounded bg-muted px-1.5 py-0.5 text-xs">public/shortcut</code>).
         </li>
         <li>
-          <span className="font-medium text-foreground">2.</span> Abra um tweet
-          com vídeo no Safari e clique em <span className="font-medium text-foreground">Compartilhar → X-Down</span>.
+          <span className="font-medium text-foreground">2.</span> Abra um vídeo
+          (no X/Twitter, YouTube, TikTok, etc.) no Safari e clique em <span className="font-medium text-foreground">Compartilhar → UniDown</span>.
         </li>
         <li>
           <span className="font-medium text-foreground">3.</span> Esta página
@@ -18,7 +18,7 @@ export function EmptyState() {
         </li>
       </ol>
       <p className="mt-4 text-xs text-muted-foreground">
-        Ou cole manualmente a URL do tweet no campo acima.
+        Ou cole manualmente a URL do vídeo no campo acima.
       </p>
     </div>
   );

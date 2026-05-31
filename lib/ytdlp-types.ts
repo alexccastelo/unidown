@@ -6,6 +6,7 @@ export type VideoFormat = {
   vcodec: string | null;
   acodec: string | null;
   tbr: number | null;
+  hasAudio: boolean;
 };
 
 export type VideoInfo = {

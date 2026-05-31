@@ -1,4 +1,4 @@
-# Atalho "X-Down" para o macOS
+# Atalho "UniDown" para o macOS
 
 Como o arquivo `.shortcut` do macOS precisa ser assinado pela conta iCloud de cada usuário, o jeito mais confiável é você criar o Atalho manualmente — leva ~90 segundos. Siga o passo-a-passo abaixo.
 
@@ -9,8 +9,8 @@ Está em `Aplicativos > Atalhos` ou via Spotlight (`Cmd + Espaço` → "Atalhos"
 
 ### 2. Clique em **+** (novo atalho) no canto superior direito.
 
-### 3. Nomeie como **X-Down**
-No topo da janela do atalho, clique no nome e coloque `X-Down`.
+### 3. Nomeie como **UniDown**
+No topo da janela do atalho, clique no nome e coloque `UniDown`.
 
 ### 4. Abra o painel de **Detalhes** (ícone ⓘ ou `Cmd + ⌥ + 2`)
 Ative as opções:
@@ -58,8 +58,8 @@ Abra **Ajustes do Sistema → Privacidade e Segurança → Extensões → Compar
 ## Como usar
 
 1. Rode o app: `pnpm dev` na pasta do projeto (precisa estar em `http://localhost:3000`).
-2. No Safari, abra um tweet com vídeo.
-3. Clique em **Compartilhar** → **X-Down**.
+2. No Safari, abra um tweet ou vídeo.
+3. Clique em **Compartilhar** → **UniDown**.
 4. O navegador abre em `http://localhost:3000/?url=...` com o preview do vídeo.
 5. Clique em **Baixar vídeo** — o arquivo vai para `~/Downloads`.
 

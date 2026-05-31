@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { sanitizeFilename, validateXUrl } from "@/lib/url-utils";
+import { sanitizeFilename, validateUrl } from "@/lib/url-utils";
 import { getInfo, streamDownload, YtDlpError } from "@/lib/ytdlp";
 import { allow, clientKey } from "@/lib/rate-limit";
 
@@ -9,7 +9,10 @@ export const dynamic = "force-dynamic";
 export async function GET(req: NextRequest) {
   const urlParam = req.nextUrl.searchParams.get("url") ?? "";
   const formatParam = req.nextUrl.searchParams.get("format") ?? "";
-  const valid = validateXUrl(urlParam);
+  const extParam = req.nextUrl.searchParams.get("ext") ?? "mp4";
+  const ext = extParam === "mov" ? "mov" : "mp4";
+
+  const valid = validateUrl(urlParam);
   if (!valid.ok) {
     return Response.json({ error: valid.reason }, { status: 400 });
   }
@@ -30,23 +33,18 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "Erro inesperado." }, { status: 500 });
   }
 
-  const formatId =
-    formatParam && info.formats.some((f) => f.formatId === formatParam)
-      ? formatParam
-      : info.bestFormatId;
-
+  // Use caller's format ID if provided (from the quality picker), else best default.
+  const formatId = formatParam || info.bestFormatId;
   if (!formatId) {
     return Response.json({ error: "Nenhum formato de vídeo disponível." }, { status: 404 });
   }
 
-  const chosen = info.formats.find((f) => f.formatId === formatId);
-  const ext = chosen?.ext ?? info.ext ?? "mp4";
   const baseName = sanitizeFilename(
     info.uploader ? `${info.uploader} - ${info.id}` : info.title,
   );
   const filename = `${baseName}.${ext}`;
 
-  const { stream, contentType } = streamDownload(valid.url, formatId);
+  const { stream, contentType } = streamDownload(valid.url, formatId, ext);
   return new Response(stream, {
     headers: {
       "Content-Type": contentType,

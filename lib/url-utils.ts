@@ -1,16 +1,7 @@
-const ALLOWED_HOSTS = new Set([
-  "x.com",
-  "www.x.com",
-  "twitter.com",
-  "www.twitter.com",
-  "mobile.twitter.com",
-  "mobile.x.com",
-]);
-
 export type ValidUrl = { ok: true; url: string; host: string };
 export type InvalidUrl = { ok: false; reason: string };
 
-export function validateXUrl(input: string): ValidUrl | InvalidUrl {
+export function validateUrl(input: string): ValidUrl | InvalidUrl {
   if (!input || typeof input !== "string") {
     return { ok: false, reason: "URL não informada." };
   }
@@ -25,12 +16,6 @@ export function validateXUrl(input: string): ValidUrl | InvalidUrl {
     return { ok: false, reason: "Use uma URL http(s)." };
   }
   const host = parsed.hostname.toLowerCase();
-  if (!ALLOWED_HOSTS.has(host)) {
-    return {
-      ok: false,
-      reason: "Apenas links do X (twitter.com / x.com) são aceitos nesta versão.",
-    };
-  }
   return { ok: true, url: parsed.toString(), host };
 }
 

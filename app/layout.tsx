@@ -14,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "X-Down — Baixar vídeos do X",
+  title: "UniDown — Download Universal de Vídeos",
   description:
-    "Baixe vídeos do X (Twitter) pelo menu Compartilhar do macOS. Minimalista, sem contas, sem propaganda.",
+    "Baixe vídeos do YouTube, TikTok, X (Twitter), Instagram e outras redes pelo menu Compartilhar do macOS. Minimalista, sem contas, sem propaganda.",
 };
 
 export default function RootLayout({
